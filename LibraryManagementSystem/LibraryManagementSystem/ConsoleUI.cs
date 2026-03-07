@@ -37,7 +37,7 @@ public class ConsoleUI
         library.StaffMembers.Add(new Staff
         {
             StaffId = 1,
-            Name = "Aisha",
+            Name = "Admin",
             Role = "Librarian",
             Username = "admin",
             Password = "123"
@@ -46,9 +46,9 @@ public class ConsoleUI
         library.StaffMembers.Add(new Staff
         {
             StaffId = 2,
-            Name = "Ravi",
+            Name = "Volunteer",
             Role = "Volunteer",
-            Username = "ravi",
+            Username = "volunteer",
             Password = "123"
         });
 
@@ -129,6 +129,14 @@ public class ConsoleUI
 
     public void Show()
     {
+
+        AnsiConsole.Write(
+            new Panel("[bold green]Welcome to the Library Management System[/]")
+                .Border(BoxBorder.Double)
+                .BorderStyle(new Style(Color.Gold1))
+                .Padding(1, 1)
+        );
+
         while (true)
         {
             var choice = AnsiConsole.Prompt(
@@ -226,11 +234,21 @@ public class ConsoleUI
     {
         while (true)
         {
-            var choice = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Please select an option")
-                .AddChoices("Search Book", "Borrow Book", "Return Book", "Logout"));
-
+            var choice = "";
+            if(staff.Role == "Librarian")
+            {
+                choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Please select an option")
+                        .AddChoices("Search Book", "Borrow Book", "Return Book", "Logout"));
+            }
+            else if(staff.Role == "Volunteer")
+            {
+                choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Please select an option")
+                        .AddChoices("Manage Book", "Logout"));
+            }
             AnsiConsole.MarkupLine($"You selected: [green]{choice}[/]");
 
             if (choice == "Search Book")
@@ -249,6 +267,11 @@ public class ConsoleUI
             {
                 var message = dataManager.ReturnBook(int.Parse(AskForInput("Book ID: ")));
                 showMessage(message);
+            }
+            else if (choice == "Manage Book")
+            {
+                // TBD
+                showMessage("This feature is coming soon!");
             }
             else break;
         }

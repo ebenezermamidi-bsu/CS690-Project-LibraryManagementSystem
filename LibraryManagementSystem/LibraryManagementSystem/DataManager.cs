@@ -26,7 +26,7 @@ public class DataManager
             {
                 Success = true,
                 Member = member,
-                Message = $"Welcome {member.Name}"
+                Message = $"Welcome Member, {member.Name}!"
             };
         }
 
@@ -39,7 +39,7 @@ public class DataManager
             {
                 Success = true,
                 Staff = staff,
-                Message = $"Welcome {staff.Name}"
+                Message = $"Welcome {staff.Name}! Your Role is {staff.Role}."
             };
         }
 
