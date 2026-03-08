@@ -193,7 +193,7 @@ public class DataManager
             return "Error: Borrow record not found.";
 
         if (borrow.DueDate > DateTime.Now)
-            return "Cannot renew. Book is not due yet.";
+            return "Error: Book is not due yet. Renew after " + borrow.DueDate.ToShortDateString();
 
         borrow.DueDate = DateTime.Now.AddDays(7);
 
