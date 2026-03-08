@@ -92,12 +92,13 @@ namespace LibraryManagementSystem.Tests
             var manager = new DataManager(library, repo);
 
             manager.BorrowBook(1, 1, 1);
+            library.Borrows.First(b => b.BookId == 1).DueDate = DateTime.Now.AddDays(-10);
             var oldDueDate = library.Borrows.First(b => b.BookId == 1).DueDate;
-
+            
             manager.RenewBook(1, 1);
 
             var newDueDate = library.Borrows.First(b => b.BookId == 1).DueDate;
-
+            
             Assert.True(newDueDate > oldDueDate);
         }
 
