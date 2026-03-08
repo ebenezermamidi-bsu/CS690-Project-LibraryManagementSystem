@@ -55,8 +55,8 @@ public class ConsoleUI
         library.Borrows.Add(new Borrow
         {
             BorrowId = 1,
-            BorrowDate = DateTime.Now,
-            DueDate = DateTime.Now.AddDays(7),
+            BorrowDate = DateTime.Now.AddDays(-20),
+            DueDate = DateTime.Now.AddDays(-6),
             ReturnDate = null,
             BookId = 3,
             MemberId = 2,
@@ -66,8 +66,8 @@ public class ConsoleUI
         library.Borrows.Add(new Borrow
         {
             BorrowId = 2,
-            BorrowDate = DateTime.Now,
-            DueDate = DateTime.Now.AddDays(7),
+            BorrowDate = DateTime.Now.AddDays(-45),
+            DueDate = DateTime.Now.AddDays(-31),
             ReturnDate = null,
             BookId = 2,
             MemberId = 1,
