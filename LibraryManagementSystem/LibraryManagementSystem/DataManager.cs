@@ -46,7 +46,7 @@ public class DataManager
         return new LoginResult
         {
             Success = false,
-            Message = "Invalid username or password."
+            Message = "Error: Invalid username or password."
         };
     }
 
@@ -119,14 +119,14 @@ public class DataManager
     {
         var member = _library.Members.FirstOrDefault(m => m.MemberId == memberId);
         if (member == null)
-            return "Member not found.";
+            return "Error: Member not found.";
 
         var book = _library.Books.FirstOrDefault(b => b.BookId == bookId);
         if (book == null)
-            return "Book not found.";
+            return "Error: Book not found.";
 
         if (!book.IsAvailable)
-            return "Book is already borrowed.";
+            return "Error: Book is already borrowed.";
 
         var borrow = new Borrow
         {
@@ -150,19 +150,29 @@ public class DataManager
     public string ReturnBook(int bookId)
     {
         var borrow = _library.Borrows
-            .FirstOrDefault(l => l.BookId == bookId && l.ReturnDate == null);
+                        .FirstOrDefault(l => l.BookId == bookId && l.ReturnDate == null);
 
         if (borrow == null)
-            return "Active borrow record not found.";
+        {
+            var this_book = _library.Books
+                        .FirstOrDefault(l => l.BookId == bookId);
 
-        borrow.ReturnDate = DateTime.Now;
+            if (this_book == null)
+                return "Error: Book not found.";
+            else
+                return "Error: Book is not currently borrowed or already returned.";
+        }
+        else {    
 
-        var book = _library.Books.First(b => b.BookId == bookId);
-        book.IsAvailable = true;
+            borrow.ReturnDate = DateTime.Now;
 
-        _repo.Save(_library);
+            var book = _library.Books.First(b => b.BookId == bookId);
+            book.IsAvailable = true;
 
-        return $"Book '{book.Title}' returned successfully.";
+            _repo.Save(_library);
+
+            return $"Book '{book.Title}' returned successfully.";
+        }
     }
 
     public List<Borrow> GetActiveBorrowsForMember(int memberId)
@@ -180,7 +190,7 @@ public class DataManager
                                 l.ReturnDate == null);
 
         if (borrow == null)
-            return "Borrow record not found.";
+            return "Error: Borrow record not found.";
 
         if (borrow.DueDate < DateTime.Now)
             return "Cannot renew. Book is already overdue.";

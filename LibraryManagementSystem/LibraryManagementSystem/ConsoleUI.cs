@@ -74,6 +74,8 @@ public class ConsoleUI
             StaffId = 1
         });
 
+        repo.Save(library);
+
     }
 
     public static string AskForInput(string message)
@@ -85,6 +87,8 @@ public class ConsoleUI
     {
         if (message.ToLower().Contains("success"))
             AnsiConsole.MarkupLine($"[green]{message}[/]");
+        else if (message.ToLower().Contains("error"))
+            AnsiConsole.MarkupLine($"[red]{message}[/]");
         else
             AnsiConsole.MarkupLine($"[yellow]{message}[/]");
     }
