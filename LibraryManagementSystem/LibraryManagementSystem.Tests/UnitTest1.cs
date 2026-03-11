@@ -22,6 +22,7 @@ namespace LibraryManagementSystem.Tests
             return library;
         }
 
+        // Test Member login success
         [Fact]
         public void Login_ShouldReturnMember_WhenCredentialsCorrect()
         {
@@ -36,6 +37,7 @@ namespace LibraryManagementSystem.Tests
             Assert.Equal("Alice", user.Member.Name);
         }
 
+        // Test Staff login success
         [Fact]
         public void Login_ShouldReturnStaff_WhenStaffCredentialsCorrect()
         {
@@ -50,6 +52,7 @@ namespace LibraryManagementSystem.Tests
             Assert.Equal("Admin", user.Staff.Name);
         }
 
+        // Test Book borrow success
         [Fact]
         public void BorrowBook_ShouldMarkBookAsUnavailable()
         {
@@ -57,7 +60,7 @@ namespace LibraryManagementSystem.Tests
             var repo = new FileSaver();
             var manager = new DataManager(library, repo);
 
-            manager.BorrowBook(1, 1, 1); // Member 1 borrows Book 1
+            manager.BorrowBook(1, 1, 1);
 
             var book = library.Books.First(b => b.BookId == 1);
 
@@ -67,6 +70,24 @@ namespace LibraryManagementSystem.Tests
             Assert.Null(borrow.ReturnDate);
         }
 
+        // Test Book borrow failure (already borrowed)
+        [Fact]
+        public void BorrowBook_ShouldFail_WhenBookAlreadyBorrowed()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.BorrowBook(1, 1, 1);
+            manager.BorrowBook(2, 1, 1);
+
+            var borrows = library.Borrows.Where(b => b.BookId == 1).ToList();
+
+            Assert.Single(borrows);
+            Assert.False(library.Books.First(b => b.BookId == 1).IsAvailable);
+        }
+
+        // Test Book return success
         [Fact]
         public void ReturnBook_ShouldMarkBookAsAvailable()
         {
@@ -75,7 +96,7 @@ namespace LibraryManagementSystem.Tests
             var manager = new DataManager(library, repo);
 
             manager.BorrowBook(1, 1, 1);
-            manager.ReturnBook(1); // Return Book 1
+            manager.ReturnBook(1);
 
             var book = library.Books.First(b => b.BookId == 1);
             Assert.True(book.IsAvailable);
@@ -84,6 +105,23 @@ namespace LibraryManagementSystem.Tests
             Assert.NotNull(borrow.ReturnDate);
         }
 
+        // Test Book return failure (when returning available book)
+        [Fact]
+        public void ReturnBook_ShouldFail_WhenBookNotBorrowed()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.ReturnBook(1);
+
+            var book = library.Books.First(b => b.BookId == 1);
+
+            Assert.True(book.IsAvailable);
+            Assert.Empty(library.Borrows);
+        }
+
+        // Test book renewal success
         [Fact]
         public void RenewBook_ShouldExtendDueDate()
         {
@@ -92,16 +130,59 @@ namespace LibraryManagementSystem.Tests
             var manager = new DataManager(library, repo);
 
             manager.BorrowBook(1, 1, 1);
-            library.Borrows.First(b => b.BookId == 1).DueDate = DateTime.Now.AddDays(-10);
-            var oldDueDate = library.Borrows.First(b => b.BookId == 1).DueDate;
             
+            var borrow = library.Borrows.First(b => b.BookId == 1);
+            borrow.DueDate = DateTime.Now.AddDays(3);
+
+            var oldDueDate = borrow.DueDate;
+
             manager.RenewBook(1, 1);
 
-            var newDueDate = library.Borrows.First(b => b.BookId == 1).DueDate;
-            
-            Assert.True(newDueDate > oldDueDate);
+            Assert.True(borrow.DueDate > oldDueDate);
+            Assert.Equal(1, borrow.RenewCount);
         }
 
+        // Test book renewal failure (when borrow is overdue)
+        [Fact]
+        public void RenewBook_ShouldFail_WhenOverdue()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.BorrowBook(1, 1, 1);
+
+            var loan = library.Borrows.First(b => b.BookId == 1);
+            loan.DueDate = DateTime.Now.AddDays(-1);
+
+            var oldDueDate = loan.DueDate;
+
+            manager.RenewBook(1, 1);
+
+            Assert.Equal(oldDueDate, loan.DueDate);
+        }
+
+        // Test book renewal failure (when max limit 2 reached)
+        [Fact]
+        public void RenewBook_ShouldFail_WhenRenewLimitReached()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.BorrowBook(1, 1, 1);
+
+            var loan = library.Borrows.First(b => b.BookId == 1);
+            loan.RenewCount = 2;
+
+            var oldDueDate = loan.DueDate;
+
+            manager.RenewBook(1, 1);
+
+            Assert.Equal(oldDueDate, loan.DueDate);
+        }
+
+        // Test book search by title success
         [Fact]
         public void Search_ShouldReturnMatchingBooks_ByTitle()
         {
