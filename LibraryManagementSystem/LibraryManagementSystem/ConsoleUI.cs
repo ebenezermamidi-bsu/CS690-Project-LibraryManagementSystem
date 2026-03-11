@@ -5,7 +5,7 @@ using Spectre.Console;
 public class ConsoleUI
 {
     DataManager dataManager;
-    Library library;
+    public Library library;
     FileSaver repo;
 
     public ConsoleUI()
