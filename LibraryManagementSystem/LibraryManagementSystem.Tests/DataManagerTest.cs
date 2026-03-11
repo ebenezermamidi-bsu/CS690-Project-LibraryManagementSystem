@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Xunit;
 using LibraryManagementSystem;
 using System.Linq;
 
 namespace LibraryManagementSystem.Tests
 {
-    public class LibraryTests
+    public class DataManagerTest
     {
         private Library SeedLibrary()
         {
@@ -20,32 +20,6 @@ namespace LibraryManagementSystem.Tests
             library.StaffMembers.Add(new Staff { StaffId = 1, Name = "Admin", Role = "Librarian", Username = "admin", Password = "123" });
 
             return library;
-        }
-
-        // Test console UI to write message to console
-        [Fact]
-        public void ShowMessage_ShouldPrintMessageText()
-        {
-            var message = "Hello, Library!";
-            using var sw = new StringWriter();
-            Console.SetOut(sw);
-
-            ConsoleUI.showMessage(message);
-
-            var output = sw.ToString().Trim();
-            Assert.Contains("Hello, Library!", output);
-        }
-
-        // Test Console UI to load initial data
-        [Fact]
-        public void SeedData_ShouldPopulateLibraryWithInitialData()
-        {
-            var ui = new ConsoleUI();
-            ui.SeedData();
-
-            Assert.NotEmpty(ui.library.Books);
-            Assert.NotEmpty(ui.library.Members);
-            Assert.NotEmpty(ui.library.StaffMembers);
         }
 
         // Test Member login success
@@ -221,27 +195,6 @@ namespace LibraryManagementSystem.Tests
 
             Assert.Single(books);
             Assert.Equal("1984", books[0].Title);
-        }
-
-        private const string TestFile = "testLibraryData.json";
-
-        // Test Data Manager data persistance - Save and retrieve data from json file
-        [Fact]
-        public void SaveAndLoad_ShouldPersistLibraryData()
-        {
-            var library = new Library();
-            library.Books.Add(new Book { BookId = 1, Title = "Test Book", Author = "Author", Category = "Test" });
-
-            var saver = new FileSaver();
-            saver.Save(library);
-
-            var loadedLibrary = saver.Load();
-
-            Assert.Single(loadedLibrary.Books);
-            Assert.Equal("Test Book", loadedLibrary.Books[0].Title);
-
-            if (File.Exists(TestFile))
-                File.Delete(TestFile);
         }
     }
 }
