@@ -97,15 +97,30 @@ public class DataManager
         table.AddColumn("[yellow]Author[/]");
         table.AddColumn("[yellow]Category[/]");
         table.AddColumn("[yellow]Status[/]");
+        table.AddColumn("[yellow]Due Date[/]");
 
         foreach (var book in resultList)
         {
+
+            var borrow = _library.Borrows
+                            .FirstOrDefault(b => b.BookId == book.BookId && b.ReturnDate == null);
+
+            string status = "[green]Available[/]";
+            string due = "-";
+
+            if (borrow != null)
+            {
+                due = borrow.DueDate.ToShortDateString();
+                status = borrow.DueDate < DateTime.Now ? "[red]Overdue[/]" : "[yellow]Borrowed[/]";
+            }
+
             table.AddRow(
                 book.BookId.ToString(),
                 book.Title,
                 book.Author,
                 book.Category,
-                book.IsAvailable ? "[green]Available[/]" : "[red]Borrowed[/]"
+                status,
+                due
             );
         }
 
@@ -190,12 +205,18 @@ public class DataManager
                                 l.ReturnDate == null);
 
         if (borrow == null)
-            return "Error: Borrow record not found.";
+            return "Error: Book is not currently borrowed.";
 
-        if (borrow.DueDate > DateTime.Now)
-            return "Error: Book is not due yet. Renew after " + borrow.DueDate.ToShortDateString();
+        if (borrow.DueDate < DateTime.Now)
+            return $"Error: Book is overdue, and cannot be renewed. Your due date was {borrow.DueDate.ToShortDateString()}.";
 
-        borrow.DueDate = DateTime.Now.AddDays(7);
+        if (borrow.RenewCount >= 2)
+        {
+            return "Error: Book is renewed two times, renewal limit reached.";
+        }
+
+        borrow.DueDate = borrow.DueDate.AddDays(7);
+        borrow.RenewCount++;
 
         _repo.Save(_library);
 

@@ -37,6 +37,7 @@ public class Borrow
     public int BookId { get; set; }
     public int MemberId { get; set; }
     public int StaffId { get; set; } 
+    public int RenewCount { get; set; } = 0;
 }
 
 public class Library

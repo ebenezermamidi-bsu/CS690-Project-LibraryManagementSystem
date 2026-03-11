@@ -55,19 +55,19 @@ public class ConsoleUI
         library.Borrows.Add(new Borrow
         {
             BorrowId = 1,
-            BorrowDate = DateTime.Now.AddDays(-20),
-            DueDate = DateTime.Now.AddDays(-6),
+            BorrowDate = DateTime.Now.AddDays(-10),
+            DueDate = DateTime.Now.AddDays(4),
             ReturnDate = null,
             BookId = 3,
-            MemberId = 2,
+            MemberId = 1,
             StaffId = 1
         });
 
         library.Borrows.Add(new Borrow
         {
             BorrowId = 2,
-            BorrowDate = DateTime.Now.AddDays(-45),
-            DueDate = DateTime.Now.AddDays(-31),
+            BorrowDate = DateTime.Now.AddDays(-20),
+            DueDate = DateTime.Now.AddDays(-6),
             ReturnDate = null,
             BookId = 2,
             MemberId = 1,
