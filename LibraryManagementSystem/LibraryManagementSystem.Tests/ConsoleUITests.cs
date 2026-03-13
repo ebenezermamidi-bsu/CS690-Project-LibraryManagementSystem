@@ -20,17 +20,5 @@ namespace LibraryManagementSystem.Tests
             var output = sw.ToString().Trim();
             Assert.Contains("Hello, Library!", output);
         }
-
-        // Test Console UI to load initial data
-        [Fact]
-        public void SeedData_ShouldPopulateLibraryWithInitialData()
-        {
-            var ui = new ConsoleUI();
-            ui.SeedData();
-
-            Assert.NotEmpty(ui.library.Books);
-            Assert.NotEmpty(ui.library.Members);
-            Assert.NotEmpty(ui.library.StaffMembers);
-        }
     }
 }

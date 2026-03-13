@@ -9,7 +9,7 @@ namespace LibraryManagementSystem.Tests
     {
         private const string TestFile = "testLibraryData.json";
 
-        // Test Data Manager data persistance - Save and retrieve data from json file
+        // Test data persistance - Save and retrieve data from json file
         [Fact]
         public void SaveAndLoad_ShouldPersistLibraryData()
         {

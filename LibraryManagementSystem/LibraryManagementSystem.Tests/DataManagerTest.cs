@@ -7,6 +7,22 @@ namespace LibraryManagementSystem.Tests
 {
     public class DataManagerTest
     {
+        // Test book search by title success
+        [Fact]
+        public void Search_ShouldReturnMatchingBooks_ByTitle()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            var keyword = "1984";
+            var books = library.Books.Where(b => b.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            Assert.Single(books);
+            Assert.Equal("1984", books[0].Title);
+        }
+
+        //Seeding test data for next test cases
         private Library SeedLibrary()
         {
             var library = new Library();
@@ -105,7 +121,7 @@ namespace LibraryManagementSystem.Tests
             Assert.NotNull(borrow.ReturnDate);
         }
 
-        // Test Book return failure (when returning available book)
+        // Test Book return failure (when returning unvailable book)
         [Fact]
         public void ReturnBook_ShouldFail_WhenBookNotBorrowed()
         {
@@ -180,21 +196,6 @@ namespace LibraryManagementSystem.Tests
             manager.RenewBook(1, 1);
 
             Assert.Equal(oldDueDate, loan.DueDate);
-        }
-
-        // Test book search by title success
-        [Fact]
-        public void Search_ShouldReturnMatchingBooks_ByTitle()
-        {
-            var library = SeedLibrary();
-            var repo = new FileSaver();
-            var manager = new DataManager(library, repo);
-
-            var keyword = "1984";
-            var books = library.Books.Where(b => b.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            Assert.Single(books);
-            Assert.Equal("1984", books[0].Title);
         }
     }
 }
