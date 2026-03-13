@@ -14,7 +14,7 @@ public class DataManager
         _repo = repo;
     }
 
-    // LOGIN
+    // Method to authenticate Users and retrun if its Member or Staff
     public LoginResult Login(string username, string password)
     {
         var member = _library.Members
@@ -50,7 +50,7 @@ public class DataManager
         };
     }
 
-    // SEARCH
+    // Method to search books based on the user input/key word and type (Title, Author etc)
     public string Search(string keyword, string searchType)
     {
         IEnumerable<Book> results = new List<Book>();
@@ -78,7 +78,7 @@ public class DataManager
                     b.Author.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
                     b.Category.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
-        else // All
+        else // This displays all the books in the linrary
         {
             results = _library.Books;
         }
@@ -129,7 +129,8 @@ public class DataManager
         return $"{resultList.Count} book(s) found.";
     }
 
-    // BORROW (Staff Only)
+    // This method executes a book borrow/loan transaction
+    // This is for Staff Only
     public string BorrowBook(int memberId, int bookId, int staffId)
     {
         var member = _library.Members.FirstOrDefault(m => m.MemberId == memberId);
@@ -162,6 +163,8 @@ public class DataManager
         return $"Book '{book.Title}' successfully borrowed. Due date: {borrow.DueDate:d}";
     }
 
+    // This method executes a book return transaction
+    // This is for Staff Only
     public string ReturnBook(int bookId)
     {
         var borrow = _library.Borrows
@@ -190,6 +193,7 @@ public class DataManager
         }
     }
 
+    // Methof to get all active book loans/borrows for a specific member
     public List<Borrow> GetActiveBorrowsForMember(int memberId)
     {
         return _library.Borrows
@@ -197,6 +201,8 @@ public class DataManager
             .ToList();
     }
 
+    // This method executes a book renewal transaction
+    // This is for Member Only
     public string RenewBook(int memberId, int bookId)
     {
         var borrow = _library.Borrows

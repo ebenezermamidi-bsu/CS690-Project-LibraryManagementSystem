@@ -15,6 +15,8 @@ public class ConsoleUI
         dataManager = new DataManager(library, repo); //service
     }
 
+    // This method seeds initial/default data to the library object and saves to json file. 
+    // Seeding will happen only first time on app initialization.
     public void SeedData()
     {
         if (library.Books.Any() || library.Members.Any() || library.StaffMembers.Any())
@@ -78,11 +80,14 @@ public class ConsoleUI
 
     }
 
+    // Method to promp user input using Spectre Console
     public static string AskForInput(string message)
     {
         return AnsiConsole.Ask<string>(message) ?? string.Empty;
     }
 
+    // Method to display messages on console.
+    // This also color codes if success or error is found in the message.
     public static void showMessage(string message)
     {
         if (message.ToLower().Contains("success"))
@@ -93,6 +98,8 @@ public class ConsoleUI
             AnsiConsole.MarkupLine($"[yellow]{message}[/]");
     }
 
+    // Method to display current library members/patrons as a Spectr Console selectable list
+    // and return the memberId of the selected member.
     public int SelectMember()
     {
         var prompt = new SelectionPrompt<Member>()
@@ -107,6 +114,8 @@ public class ConsoleUI
         return selectedMember.MemberId;
     }
 
+    // Method to display current borrowed books of a specific member as a Spectr Console selectable list
+    // and return the bookId of the selected book.
     public int? SelectBorrowForMember(int memberId)
     {
         var borrows = dataManager.GetActiveBorrowsForMember(memberId);
@@ -131,6 +140,7 @@ public class ConsoleUI
         return selectedBorrow.BookId;
     }
 
+    // Method to display Main Menu
     public void Show()
     {
 
@@ -180,6 +190,7 @@ public class ConsoleUI
         }
     }
 
+    // Method to display Search Menu
     public void SearchMenu()
     {
         var searchType = AnsiConsole.Prompt(
@@ -199,6 +210,7 @@ public class ConsoleUI
         showMessage(message);
     }
 
+    // Method to display Member/Patron Menu
     void MemberMenu(Member member)
     {
         while (true)
@@ -234,6 +246,7 @@ public class ConsoleUI
         }
     }
 
+    // Method to display Staff/Librarian Menu
     void StaffMenu(Staff staff)
     {
         while (true)
