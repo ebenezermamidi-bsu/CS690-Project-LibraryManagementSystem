@@ -2,6 +2,7 @@ using System;
 using Xunit;
 using LibraryManagementSystem;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace LibraryManagementSystem.Tests
 {
@@ -27,8 +28,8 @@ namespace LibraryManagementSystem.Tests
         {
             var library = new Library();
 
-            library.Books.Add(new Book { BookId = 1, Title = "1984", Author = "George Orwell", Category = "Dystopian" });
-            library.Books.Add(new Book { BookId = 2, Title = "The Hobbit", Author = "J.R.R. Tolkien", Category = "Fantasy" });
+            library.Books.Add(new Book { BookId = 1, Title = "1984", Author = "George Orwell", Category = "Dystopian", Location="A1" });
+            library.Books.Add(new Book { BookId = 2, Title = "The Hobbit", Author = "J.R.R. Tolkien", Category = "Fantasy", Location="A2" });
 
             library.Members.Add(new Member { MemberId = 1, Name = "Alice", Username = "alice", Password = "123" });
             library.Members.Add(new Member { MemberId = 2, Name = "Bob", Username = "bob", Password = "123" });
@@ -146,7 +147,7 @@ namespace LibraryManagementSystem.Tests
             var manager = new DataManager(library, repo);
 
             manager.BorrowBook(1, 1, 1);
-            
+
             var borrow = library.Borrows.First(b => b.BookId == 1);
             borrow.DueDate = DateTime.Now.AddDays(3);
 
@@ -196,6 +197,76 @@ namespace LibraryManagementSystem.Tests
             manager.RenewBook(1, 1);
 
             Assert.Equal(oldDueDate, loan.DueDate);
+        }
+
+        // Test Add Book to Library
+        [Fact]
+        public void AddBook_ShouldAddBookToLibrary()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.AddBook("Clean Code", "Robert Martin", "Programming", "B1");
+
+            var book = library.Books.FirstOrDefault(b => b.Title == "Clean Code");
+
+            Assert.NotNull(book);
+            Assert.Equal("Programming", book.Category);
+            Assert.Equal("B1", book.Location);
+        }
+
+        // Test Update Book category and location
+        [Fact]
+        public void UpdateBook_ShouldUpdateCategoryAndLocation()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.UpdateBook(1, "Classic", "C3");
+
+            var book = library.Books.First(b => b.BookId == 1);
+
+            Assert.Equal("Classic", book.Category);
+            Assert.Equal("C3", book.Location);
+        }
+
+        // Test identify and display overdue books
+        [Fact]
+        public void GetOverdueBooks_ShouldReturnOverdueBooks()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.BorrowBook(1, 1, 1);
+
+            var borrow = library.Borrows.First();
+            borrow.DueDate = DateTime.Now.AddDays(-2);
+
+            var overdue = manager.GetOverdueBooks();
+
+            Assert.Single(overdue);
+        }
+
+        // Test generate overdue book reminders
+        [Fact]
+        public void GenerateOverdueReminders_ShouldReturnReminder()
+        {
+            var library = SeedLibrary();
+            var repo = new FileSaver();
+            var manager = new DataManager(library, repo);
+
+            manager.BorrowBook(1, 1, 1);
+
+            var borrow = library.Borrows.First();
+            borrow.DueDate = DateTime.Now.AddDays(-5);
+
+            var reminders = manager.GenerateOverdueReminders();
+
+            Assert.Single(reminders);
+            Assert.Contains("Reminder", reminders.First());
         }
     }
 }

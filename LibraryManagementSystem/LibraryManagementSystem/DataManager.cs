@@ -96,6 +96,7 @@ public class DataManager
         table.AddColumn("[yellow]Title[/]");
         table.AddColumn("[yellow]Author[/]");
         table.AddColumn("[yellow]Category[/]");
+        table.AddColumn("[yellow]Location[/]");
         table.AddColumn("[yellow]Status[/]");
         table.AddColumn("[yellow]Due Date[/]");
 
@@ -119,6 +120,7 @@ public class DataManager
                 book.Title,
                 book.Author,
                 book.Category,
+                book.Location,
                 status,
                 due
             );
@@ -227,5 +229,102 @@ public class DataManager
         _repo.Save(_library);
 
         return $"Renewal successful. New due date: {borrow.DueDate:d}";
+    }
+
+
+    // This method adds a new book to Library
+    public string AddBook(string title, string author, string category, string location)
+    {
+        var newBook = new Book
+        {
+            BookId = _library.Books.Any() ? _library.Books.Max(b => b.BookId) + 1 : 1,
+            Title = title,
+            Author = author,
+            Category = category,
+            Location = location,
+            IsAvailable = true
+        };
+
+        _library.Books.Add(newBook);
+
+        _repo.Save(_library);
+
+        return $"Success: Book '{title}' added to inventory.";
+    }
+
+    // This method updates book details Category and Location
+    public string UpdateBook(int bookId, string category, string location)
+    {
+        var book = _library.Books.FirstOrDefault(b => b.BookId == bookId);
+
+        if (book == null)
+            return "Error: Book not found.";
+
+        book.Category = category;
+        book.Location = location;
+
+        _repo.Save(_library);
+
+        return $"Success: Book '{book.Title}' updated.";
+    }
+
+    // This method fetches overdue books
+    public List<(Book Book, Borrow Borrow, Member Member)> GetOverdueBooks()
+    {
+        var overdue = _library.Borrows
+            .Where(b => b.ReturnDate == null && b.DueDate < DateTime.Now)
+            .Select(b =>
+            {
+                var book = _library.Books.First(x => x.BookId == b.BookId);
+                var member = _library.Members.First(x => x.MemberId == b.MemberId);
+
+                return (book, b, member);
+            })
+            .ToList();
+
+        return overdue;
+    }
+
+    // This method displays overdue books
+    public string ShowOverdueBooks()
+    {
+        var overdue = GetOverdueBooks();
+
+        if (!overdue.Any())
+            return "No overdue books.";
+
+        var table = new Table();
+
+        table.Border = TableBorder.Rounded;
+
+        table.AddColumn("[yellow]Book[/]");
+        table.AddColumn("[yellow]Borrower[/]");
+        table.AddColumn("[yellow]Due Date[/]");
+
+        foreach (var item in overdue)
+        {
+            table.AddRow(
+                item.Book.Title,
+                item.Member.Name,
+                $"[red]{item.Borrow.DueDate:d}[/]"
+            );
+        }
+
+        AnsiConsole.Write(table);
+
+        return $"{overdue.Count} overdue book(s) found.";
+    }
+
+    // This method Generates overdue reminder messages
+    public List<string> GenerateOverdueReminders()
+    {
+        var overdue = GetOverdueBooks();
+
+        var reminders = overdue
+            .Select(o =>
+                $"Reminder: {o.Member.Name}, please return '{o.Book.Title}'. Due date was {o.Borrow.DueDate:d}.")
+            .ToList();
+
+        return reminders;
     }
 }

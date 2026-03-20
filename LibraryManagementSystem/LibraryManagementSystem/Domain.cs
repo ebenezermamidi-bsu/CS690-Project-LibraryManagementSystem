@@ -8,6 +8,7 @@ public class Book
     public required string Author { get; set; }
     public required string Category { get; set; }
     public bool IsAvailable { get; set; } = true;
+    public string Location { get; set; } = "A5";
 }
 
 public class Member

@@ -22,16 +22,16 @@ public class ConsoleUI
         if (library.Books.Any() || library.Members.Any() || library.StaffMembers.Any())
             return;
 
-        library.Books.Add(new Book { BookId = 1, Title = "To Kill a Mockingbird", Author = "Harper Lee", Category = "Fiction" });
-        library.Books.Add(new Book { BookId = 2, Title = "1984", Author = "George Orwell", Category = "Dystopian", IsAvailable = false });
-        library.Books.Add(new Book { BookId = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald", Category = "Classic", IsAvailable = false });
-        library.Books.Add(new Book { BookId = 4, Title = "Pride and Prejudice", Author = "Jane Austen", Category = "Romance" });
-        library.Books.Add(new Book { BookId = 5, Title = "The Hobbit", Author = "J.R.R. Tolkien", Category = "Fantasy" });
-        library.Books.Add(new Book { BookId = 6, Title = "The Catcher in the Rye", Author = "J.D. Salinger", Category = "Classic" });
-        library.Books.Add(new Book { BookId = 7, Title = "Sapiens: A Brief History of Humankind", Author = "Yuval Noah Harari", Category = "History" });
-        library.Books.Add(new Book { BookId = 8, Title = "Becoming", Author = "Michelle Obama", Category = "Biography" });
-        library.Books.Add(new Book { BookId = 9, Title = "The Alchemist", Author = "Paulo Coelho", Category = "Philosophical Fiction" });
-        library.Books.Add(new Book { BookId = 10, Title = "Atomic Habits", Author = "James Clear", Category = "Self-Help" });
+        library.Books.Add(new Book { BookId = 1, Title = "To Kill a Mockingbird", Author = "Harper Lee", Category = "Fiction", Location="A1" });
+        library.Books.Add(new Book { BookId = 2, Title = "1984", Author = "George Orwell", Category = "Dystopian", IsAvailable = false, Location="A1" });
+        library.Books.Add(new Book { BookId = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald", Category = "Classic", IsAvailable = false, Location="A2" });
+        library.Books.Add(new Book { BookId = 4, Title = "Pride and Prejudice", Author = "Jane Austen", Category = "Romance", Location="A3" });
+        library.Books.Add(new Book { BookId = 5, Title = "The Hobbit", Author = "J.R.R. Tolkien", Category = "Fantasy", Location="A3" });
+        library.Books.Add(new Book { BookId = 6, Title = "The Catcher in the Rye", Author = "J.D. Salinger", Category = "Classic", Location="A2" });
+        library.Books.Add(new Book { BookId = 7, Title = "Sapiens: A Brief History of Humankind", Author = "Yuval Noah Harari", Category = "History", Location="A4" });
+        library.Books.Add(new Book { BookId = 8, Title = "Becoming", Author = "Michelle Obama", Category = "Biography", Location="A4" });
+        library.Books.Add(new Book { BookId = 9, Title = "The Alchemist", Author = "Paulo Coelho", Category = "Philosophical Fiction", Location="A1" });
+        library.Books.Add(new Book { BookId = 10, Title = "Atomic Habits", Author = "James Clear", Category = "Self-Help", Location="A4" });
 
         library.Members.Add(new Member { MemberId = 1, Name = "Ebby", Username = "ebby", Password = "123" });
         library.Members.Add(new Member { MemberId = 2, Name = "Olivia", Username = "olivia", Password = "123" });
@@ -140,6 +140,27 @@ public class ConsoleUI
         return selectedBorrow.BookId;
     }
 
+    // Method to display distinct catogeries of books as a Spectr Console selectable list
+    // and return the selected category name.
+    public string SelectCategories()
+    {
+        var categories = library.Books
+            .Select(b => b.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        var prompt = new SelectionPrompt<string>()
+            .Title("Select a category")
+            .AddChoices(categories);
+
+        var selectedCategory = AnsiConsole.Prompt(prompt);
+
+        AnsiConsole.MarkupLine($"You selected: [green]{selectedCategory}[/]");
+
+        return selectedCategory;
+    }
+
     // Method to display Main Menu
     public void Show()
     {
@@ -202,7 +223,9 @@ public class ConsoleUI
 
         var keyword = "*";
 
-        if (searchType != "All")
+        if(searchType == "Category")
+            keyword = SelectCategories();
+        else if (searchType != "All")
             keyword = AskForInput("Enter search keyword:");
 
         var message = dataManager.Search(keyword, searchType);
@@ -236,11 +259,6 @@ public class ConsoleUI
                     var message = dataManager.RenewBook(member.MemberId, bookId.Value);
                     showMessage(message);
                 }
-                // Showing list instead of prompting for ID
-                //{
-                //var message = dataManager.RenewBook(member.MemberId, int.Parse(AskForInput("Enter Book ID: ")));
-                //showMessage(message);
-                //}
             }
             else break;
         }
@@ -257,14 +275,22 @@ public class ConsoleUI
                 choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("Please select an option")
-                        .AddChoices("Search Book", "Borrow Book", "Return Book", "Logout"));
+                        .AddChoices(
+                            "Search Book", 
+                            "Borrow Book", 
+                            "Return Book", 
+                            "Manage Book", 
+                            "View Overdue Books", 
+                            "Generate Reminders", 
+                            "Logout"
+                        ));
             }
             else if(staff.Role == "Volunteer")
             {
                 choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("Please select an option")
-                        .AddChoices("Manage Book", "Logout"));
+                        .AddChoices("Search Book", "Manage Book", "Logout"));
             }
             AnsiConsole.MarkupLine($"You selected: [green]{choice}[/]");
 
@@ -274,7 +300,6 @@ public class ConsoleUI
             }
             else if (choice == "Borrow Book")
             {
-                //int m = int.Parse(AskForInput("Member ID: "));
                 int m = SelectMember();
                 int b = int.Parse(AskForInput("Book ID: "));
                 var message = dataManager.BorrowBook(m, b, staff.StaffId);
@@ -287,8 +312,49 @@ public class ConsoleUI
             }
             else if (choice == "Manage Book")
             {
-                // TBD
-                showMessage("This feature is coming soon!");
+                var manageChoice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                    .Title("Manage Books")
+                    .AddChoices("Add Book", "Update Book", "Back"));
+
+                AnsiConsole.MarkupLine($"You selected: [green]{manageChoice}[/]");
+
+                if (manageChoice == "Add Book")
+                {
+                    var title = AskForInput("Title:");
+                    var author = AskForInput("Author:");
+                    var category = AskForInput("Category:");
+                    var location = AskForInput("Location:");
+
+                    var message = dataManager.AddBook(title, author, category, location);
+                    showMessage(message);
+                }
+                else if (manageChoice == "Update Book")
+                {
+                    int id = int.Parse(AskForInput("Book ID:"));
+                    var category = AskForInput("New Category:");
+                    var location = AskForInput("New Location:");
+
+                    var message = dataManager.UpdateBook(id, category, location);
+                    showMessage(message);
+                }
+            }
+            else if (choice == "View Overdue Books")
+                {
+                    var message = dataManager.ShowOverdueBooks();
+                    showMessage(message);
+                }
+            else if (choice == "Generate Reminders")
+            {
+                var reminders = dataManager.GenerateOverdueReminders();
+
+                if (!reminders.Any())
+                    showMessage("No reminders needed.");
+                else
+                {
+                    foreach (var r in reminders)
+                        AnsiConsole.MarkupLine($"[yellow]{r}[/]");
+                }
             }
             else break;
         }
